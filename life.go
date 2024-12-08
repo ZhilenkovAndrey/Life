@@ -3,14 +3,17 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"os"
+	"os/exec"
+	"runtime"
 	"time"
 )
 
 type Universe [][]bool
 
 const (
-	width  = 20
-	height = 15
+	width  = 80
+	height = 20
 )
 
 func NewUniverse() Universe {
@@ -21,11 +24,38 @@ func NewUniverse() Universe {
 	return matrix
 }
 
-func (matrix Universe) Show() {
-	fmt.Println()
-	for i := range matrix {
-		fmt.Println(matrix[i])
+func (matrix Universe) ToString() string {
+	b := make([]byte, 0, (width+1)*height)
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			if matrix[x][y] {
+				b = append(b, '*')
+			} else {
+				b = append(b, ' ')
+			}
+		}
+		b = append(b, '\n')
 	}
+	return string(b)
+}
+
+func ClearScreen() {
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	} else {
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func (matrix Universe) Show() {
+	ClearScreen()
+	fmt.Println()
+	fmt.Print(matrix.ToString())
 }
 
 func (matrix Universe) Seed() Universe {
@@ -67,7 +97,7 @@ func (matrix Universe) CellsNeighbors(x, y int) int {
 	sum := 0
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
-			if !(i == 0 && j == 0) && matrix.IsCellAlive(x+j, y+i) {
+			if !(i == 0 && j == 0) && matrix.IsCellAlive(x+i, y+j) {
 				sum++
 			}
 		}
