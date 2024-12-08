@@ -59,11 +59,11 @@ func (matrix Universe) Show() {
 }
 
 func (matrix Universe) Seed() Universe {
-	col := width * height / 2
+	col := (width + 1) * height / 10
 
 	for i := range matrix {
 		for j := range matrix[i] {
-			b := rand.Intn(2)
+			b := rand.Intn(10)
 			if b == 1 && col != 0 {
 				matrix[i][j] = true
 				col--
@@ -97,7 +97,7 @@ func (matrix Universe) CellsNeighbors(x, y int) int {
 	sum := 0
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
-			if !(i == 0 && j == 0) && matrix.IsCellAlive(x+i, y+j) {
+			if !(i == 0 && j == 0) && matrix.IsCellAlive(x+j, y+i) {
 				sum++
 			}
 		}
@@ -106,26 +106,14 @@ func (matrix Universe) CellsNeighbors(x, y int) int {
 }
 
 func (matrix Universe) NextGeneration(x, y int) bool {
-	if matrix.IsCellAlive(x, y) == true &&
-		(matrix.CellsNeighbors(x, y) <= 2 || matrix.CellsNeighbors(x, y) >= 3) {
-		matrix[x][y] = false
-	} else {
-		matrix[x][y] = true
-	}
-
-	if matrix.IsCellAlive(x, y) == false && matrix.CellsNeighbors(x, y) == 3 {
-		matrix[x][y] = true
-	} else {
-		matrix[x][y] = false
-	}
-
-	return matrix[x][y]
+	return matrix.CellsNeighbors(x, y) == 3 || (matrix.IsCellAlive(x, y) &&
+		matrix.CellsNeighbors(x, y) == 2)
 }
 
 func NextStep(a, b Universe) Universe {
-	for i := 0; i < width; i++ {
-		for j := 0; j < height; j++ {
-			b[i][j] = a.NextGeneration(i, j)
+	for i := 0; i < height; i++ {
+		for j := 0; j < width; j++ {
+			b[j][i] = a.NextGeneration(j, i)
 		}
 	}
 	return b
@@ -135,12 +123,11 @@ func main() {
 	universeFirst := NewUniverse()
 	universeNext := NewUniverse()
 
-	universeFirst.Seed().Show()
-	time.Sleep(3 * time.Second)
+	universeFirst.Seed()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 150; i++ {
+		universeFirst.Show()
 		universeFirst = NextStep(universeFirst, universeNext)
-		universeFirst.Seed().Show()
-		time.Sleep(3 * time.Second)
+		time.Sleep(time.Second / 20)
 	}
 }
